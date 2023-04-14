@@ -1,4 +1,13 @@
-docker build --build-arg SPARK_VERSION=3.0.2 --build-arg HADOOP_VERSION=3.2 -t cluster-apache-spark:3.0.2 ./
+docker build -f DockerfileSpark --build-arg SPARK_VERSION=3.0.2 --build-arg HADOOP_VERSION=3.2 -t cluster-apache-spark:3.0.2 ./
+docker build -f DockerfileAirflow  -t airflow-with-spark:1.0.0 ./
+
+docker compose -f docker-compose-airflow.yaml up -d
+docker compose -f docker-compose-spark.yaml up -d
+
+docker compose -f docker-compose-spark.yaml -f docker-compose-airflow.yaml up -d
+
+docker compose -f docker-compose-with-airflow.yaml down
+docker compose -f docker-compose-spark.yaml down
 
 # for normal use
 docker compose up -d
@@ -6,6 +15,72 @@ docker compose up -d
 docker compose up
 
 docker container exec -it py_spark_test_tasks-spark-master-1 /bin/bash
+docker container exec -u root -it py_spark_test_tasks-airflow-worker-1 /bin/bash
+docker container exec -it py_spark_test_tasks-airflow-worker-1 /bin/bash
+docker container exec -it py_spark_test_tasks-spark-worker-a-1 /bin/bash
+docker container exec -it py_spark_test_tasks-spark-worker-b-1 /bin/bash
 
 docker compose down
 docker compose config
+
+cd /mnt/c/Users/ubart/IdeaProjects/py_spark_test_tasks
+export AIRFLOW_IMAGE_NAME=airflow-with-spark:1.0.0
+
+docker compose ps
+docker system prune
+
+
+Procedure
+    Stop the container(s) using the following command:
+    docker-compose down
+
+    Delete all containers using the following command:
+    docker rm -f $(docker ps -a -q)
+
+    Delete all volumes using the following command:
+    docker volume rm $(docker volume ls -q)
+
+    Restart the containers using the following command:
+    docker-compose up -d
+
+https://stackoverflow.com/questions/59391408/passing-multiple-yml-files-to-docker-compose
+
+There isn't a password for any of the users in the container -- there generally isn't in docker containers.
+    docker exec -u root -ti my_airflow_container bash to get a root shell inside a running container, or
+    docker run --rm -ti -u root --entrypoint bash puckel/airflow to start a new container as root.
+
+https://unix.stackexchange.com/questions/69314/automated-ssh-keygen-without-passphrase-how
+https://serverfault.com/questions/241588/how-to-automate-ssh-login-with-password
+
+$ ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/username/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/username/.ssh/id_rsa.
+Your public key has been saved in /home/username/.ssh/id_rsa.pub.
+
+$ ssh-copy-id -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null airflow@spark-master
+airflow@spark-master password: airflow
+
+apt-get install sshpass -y
+
+sshpass –p airflow ssh-copy-id airflow@spark-master
+
+ssh root@spark-master
+ssh root@spark-worker-a
+ssh root@spark-worker-b
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null airflow/airflow@spark-master
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null airflow@spark-worker-a
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null airflow@spark-worker-b
+
+chmod -v 700 ~/.ssh
+chmod -v 600 ~/.ssh/id_rsa*
+
+ls -la ~/.ssh
+ls -la ~/.ssh/id_rsa*
+
+#ssh -i /root/.ssh/id_rsa.pub spark-worker-a
+#ssh root@spark-master
+#ssh root@spark-worker-a
+
