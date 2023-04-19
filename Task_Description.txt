@@ -1,9 +1,28 @@
-TASKS
+Tables/files structure:
+
+accounts
+ id            (PK)
+ age
+ country       (FK country_abbreviation.abbreviation)
+ first_name
+ last_name
+
+country_abbreviation
+ abbreviation       (PK)
+ country_full_name
+
+transactions
+ id             (FK accounts.id)
+ account_type
+ amount
+ country
+ transaction_dat
+
+
+TASKS :
 Show  all values with 2 decimal places.
 
 1 Spark SQL—show information using SQL query
-    Prepare structure type for account.csv, transactions.csv, and country_abbreviation.csv.
-
     How many accounts of each type do we have?
     Show only the balance and the latest date from transactions.csv. To calculate the balance summarize all the transactions for each account.
 
