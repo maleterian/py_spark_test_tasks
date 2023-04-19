@@ -2,7 +2,6 @@
 
 source "/opt/bash/.bashrc"
 
-python3 -m pip install -r $SERVICE_BASH/requirements.txt
-
+python3 -m pip install -r $SCRIPTS_SERVICE/requirements.txt
 
 

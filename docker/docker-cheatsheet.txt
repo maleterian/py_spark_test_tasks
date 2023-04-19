@@ -1,13 +1,15 @@
-docker build -f DockerfileSpark --build-arg SPARK_VERSION=3.0.2 --build-arg HADOOP_VERSION=3.2 -t cluster-apache-spark:3.0.2 ./
-docker build -f DockerfileAirflow  -t airflow-with-spark:1.0.0 ./
+docker build -f ./docker/DockerfileSpark --build-arg SPARK_VERSION=3.0.2 --build-arg HADOOP_VERSION=3.2 -t cluster-apache-spark:3.0.2 ./
+docker build -f ./docker/DockerfileAirflow  -t airflow-with-spark:1.0.0 ./
 
-docker compose -f docker-compose-airflow.yaml up -d
-docker compose -f docker-compose-spark.yaml up -d
+docker compose -f ./docker-compose-airflow.yaml up -d
+docker compose -f ./docker-compose-spark.yaml up -d
 
 docker compose -f docker-compose-spark.yaml -f docker-compose-airflow.yaml up -d
 
 docker compose -f docker-compose-with-airflow.yaml down
 docker compose -f docker-compose-spark.yaml down
+
+docker compose -f docker-compose-spark.yaml -f docker-compose-airflow.yaml down
 
 # for normal use
 docker compose up -d
@@ -84,3 +86,29 @@ ls -la ~/.ssh/id_rsa*
 #ssh root@spark-master
 #ssh root@spark-worker-a
 
+git config --global core.eol lf
+git config --global core.autocrlf false
+
+airflow connections add ssh_default --conn-type ssh --conn-login airflow --conn-password airflow --conn-host spark-master --conn-port 22
+
+
+
+
+        exec /entrypoint airflow connections add 'spark_default' --conn-json \
+        '{
+          "conn_type": "spark",
+          "host": "spark://spark-master",
+          "port": "7077",
+          "extra": {
+            "queue": "root.default"
+          }
+        }' || true
+
+        exec /entrypoint airflow connections add 'ssh_default' --conn-json \
+        '{
+          "conn_type": "ssh",
+          "host": "spark-master",
+          "login": "airflow",
+          "password": "airflow",
+          "port": "22"
+        }' || true

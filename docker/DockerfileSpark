@@ -49,28 +49,32 @@ FROM builder as apache-spark
 
 RUN mkdir -p /opt/bash/service/
 
-COPY bash/.bashrc /root/.bashrc
-COPY bash/.bashrc /opt/bash/.bashrc
+COPY bash/.bashrc        /root/.bashrc
+COPY bash/.bashrc        /opt/bash/.bashrc
 
-COPY bash/log4j.properties /opt/spark/conf/log4j.properties
 COPY bash/start-spark.sh /opt/bash/start-spark.sh
+COPY bash/entry_point.sh /opt/bash/entry_point.sh
 COPY bash/service/install_python_packages.sh /opt/bash/service/install_python_packages.sh
 COPY bash/service/requirements.txt /opt/bash/service/requirements.txt
-COPY bash/entry_point.sh /opt/bash/entry_point.sh
-
-#RUN mkdir -p $SSH_DIR
-#COPY bash/service/.ssh/* $SSH_DIR
-#RUN chmod -v 700 $SSH_DIR
-#RUN chmod -v 600 $SSH_DIR/id_rsa*
+COPY bash/log4j.properties /opt/spark/conf/log4j.properties
 
 # enable SSH between containers
-RUN mkdir -p /var/run/sshd && \
-    chmod 0755 /var/run/sshd && \
-    useradd -m airflow -s /bin/bash && \
-    echo 'airflow:airflow' | chpasswd && \
-    usermod -aG sudo airflow
+ARG shh_user=airflow
+ARG ssh_dir=/home/$shh_user/.ssh
+ARG ssh_file=id_rsa
 
-COPY bash/.bashrc /home/airflow
+RUN mkdir -p /var/run/sshd $ssh_dir && \
+    chmod 0755 /var/run/sshd && \
+    useradd -m $shh_user -s /bin/bash && \
+    echo "$shh_user:$shh_user" | chpasswd && \
+    usermod -aG sudo $shh_user && \
+    ssh-keygen -t rsa -N "" -f $ssh_dir/$ssh_file && \
+    cat  $ssh_dir/$ssh_file.pub >>  $ssh_dir/authorized_keys && \
+    chown -R $shh_user $ssh_dir && \
+    chmod 600 $ssh_dir/$ssh_file && \
+    chmod 700 $ssh_dir
+
+COPY  bash/.bashrc /home/$shh_user
 
 RUN (find /opt/spark-* -type f -print0 && find /opt/bash -type f -print0 ) | xargs -0 dos2unix && \
     dos2unix /root/.bashrc

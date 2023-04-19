@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # For first time run use L_IN_BUILD_IMAGE = "y" it will build spark cluster image
-#    example ./bash/start-docker.sh y
+#    example ./bash/start-spark-docker.sh y
 # To start project with tests run set L_IN_RUN_TEST="y"
-#    example ./bash/start-docker.sh n y
+#    example ./bash/start-spark-docker.sh n y
 # To rerun failed tests set L_IN_RUN_TEST="f"
-#    example ./bash/start-docker.sh n f
+#    example ./bash/start-spark-docker.sh n f
 
 set -eEu
 set -o pipefail
@@ -13,15 +13,29 @@ set -o pipefail
 # syntax below is not compatible with some Mac OS thus using tr '[:upper:]' '[:lower:]'
 #declare -l
 
-declare L_IN_BUILD_IMAGE=$( tr '[:upper:]' '[:lower:]' <<< "${1:-n}" )
-declare L_IN_RUN_TEST=$( tr '[:upper:]' '[:lower:]' <<< "${2:-n}" )
-declare L_IN_SPARK_VERSION=$( tr '[:upper:]' '[:lower:]' <<< "${3:-3.0.2}" )
-declare L_IN_HADOOP_VERSION=$( tr '[:upper:]' '[:lower:]' <<< "${4:-3.2}" )
-declare L_IN_IMAGE_NAME=$( tr '[:upper:]' '[:lower:]' <<< "${5:-cluster-apache-spark}" )
 
-declare -l l_spark_master_container
+declare L_IN_YAML_SPARK="-f ./docker-compose-spark.yaml "
+declare L_IN_YAML_AIRFLOW="-f ./docker-compose-airflow.yaml "
+declare L_IN_YAML_ALL="$L_IN_YAML_SPARK $L_IN_YAML_AIRFLOW"
 
-export DOCKER_SPARK_IMAGE=$L_IN_IMAGE_NAME:$L_IN_SPARK_VERSION
+declare L_IN_YAML=$( tr '[:upper:]' '[:lower:]' <<< "${1:-spark}" )
+declare L_IN_BUILD_IMAGE=$( tr '[:upper:]' '[:lower:]' <<< "${2:-n}" )
+declare L_IN_RUN_TEST=$( tr '[:upper:]' '[:lower:]' <<< "${3:-n}" )
+declare L_IN_SPARK_VERSION=$( tr '[:upper:]' '[:lower:]' <<< "${4:-3.0.2}" )
+declare L_IN_HADOOP_VERSION=$( tr '[:upper:]' '[:lower:]' <<< "${5:-3.2}" )
+
+if  [[ "$L_IN_YAML" == "spark" ]]; then
+  l_yaml=$L_IN_YAML_SPARK
+elif  [[ "$L_IN_YAML" == "airflow" ]]; then
+  l_yaml=$L_IN_YAML_AIRFLOW
+else
+  l_yaml="$L_IN_YAML_ALL"
+fi
+
+declare l_spark_master_container
+
+export SPARK_IMAGE="cluster-apache-spark:$L_IN_SPARK_VERSION"
+export AIRFLOW_IMAGE_NAME=airflow-with-spark:1.0.0
 export SPARK_VERSION=$L_IN_SPARK_VERSION
 export HADOOP_VERSION=$L_IN_HADOOP_VERSION
 
@@ -52,7 +66,7 @@ function fn_run_command() {
 
 function fn_get_proj_folder() {
 
-  fn_run_command "l_spark_master_container=\$( docker compose ps | grep '\-spark\-master\-1' | cut -d ' ' -f1 )" \
+  fn_run_command "l_spark_master_container=\$( docker compose $l_yaml  ps | grep '\-spark\-master\-1' | cut -d ' ' -f1 )" \
                  "Cannot get docker project name"\
                  "30"\
                  "n"
@@ -66,19 +80,24 @@ if [[ "$L_IN_BUILD_IMAGE" == 'y' ]]; then
 #
 #  dos2unix ./*
 
-  fn_run_command "docker compose down" \
+  fn_run_command "docker compose $l_yaml down " \
                  "Cannot Stop project"\
                  "10"\
                  "n"
 
-  fn_run_command "docker build --build-arg SPARK_VERSION=$L_IN_SPARK_VERSION --build-arg HADOOP_VERSION=$L_IN_HADOOP_VERSION -t $DOCKER_SPARK_IMAGE ./ "\
+  fn_run_command "docker build -f ./docker/DockerfileSpark --build-arg SPARK_VERSION=$L_IN_SPARK_VERSION --build-arg HADOOP_VERSION=$L_IN_HADOOP_VERSION -t $SPARK_IMAGE ./ "\
                  "Cannot build image"\
                  "20"
+
+  fn_run_command "docker build -f ./docker/DockerfileAirflow  -t $AIRFLOW_IMAGE_NAME ./ "\
+                 "Cannot build image"\
+                 "25"
+
 fi
 
 if ! fn_get_proj_folder ; then
 
-  fn_run_command "docker compose up -d" \
+  fn_run_command "docker compose $l_yaml up -d " \
                  "Cannot Start project"\
                  "40"
 

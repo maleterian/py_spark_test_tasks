@@ -14,7 +14,7 @@
       4. Particular Task
    5. Make sure that all test passed, 
       1. run commands 
-      > ./bash/start-docker.sh y y
+      > ./docker/start-docker.sh spark y y
       2. or in master container execute 
       > pytest /opt/spark-apps/test
 
@@ -24,6 +24,14 @@
 3. Test created all transformations for SQL and Dataframe api using pytest-spark (write your own test_app.py)
 4. Add logging to all your functions using decorators(write your own project_logs.py)  
 5. Create docker image and run spark cluster (1 master 2 workers) on it (Add your own docker compose and Docker file)
+6. Run all tasks using airflow Group DAG
+   1. Start spark cluster and airflow  
+   > ./docker/start-docker.sh all y y
+   2. Install and configure SSH and Spark submit providers
+   3. Create simple DAG by connecting to the spark master host and running task 1.1 
+   4. Create 4 group dags (one per each task)
+      1. Group Dags need to be executed one by 
+      2. Tasks inside group need to be executed in parallel
 
 ###  Extra Hard Mode
 1. Implement hard mode
@@ -51,20 +59,23 @@
    1. Permissions
    >  chmod -R 755 ./*
    2. Docker image build
-   > ./bash/start-docker.sh y
-   3. If bash scripts doesn't work for you run commands below
-      > docker build --build-arg SPARK_VERSION=3.0.2 --build-arg HADOOP_VERSION=3.2 -t cluster-apache-spark:3.0.2 ./ 
+   > ./bash/start-docker.sh spark y
+   3. If bash scripts doesn't work, run commands below
+      > docker build -f ./docker/DockerfileSpark  --build-arg SPARK_VERSION=3.0.2 --build-arg HADOOP_VERSION=3.2 -t cluster-apache-spark:3.0.2 ./
+      > docker build -f ./docker/DockerfileAirflow  -t airflow-with-spark:1.0.0 ./
+   4. To run only spark cluster without airflow run    
+      > docker compose -f ./docker/docker-compose-spark.yaml up -d
       > 
-      > docker compose up -d
-      > 
-      > docker container exec -it py_spark_test_tasks-spark-master-1 /bin/bash 
+      > docker container exec -it py_spark_test_tasks-spark-master-1 /bin/bash
+   5. To run Spark and Airflow run
+      > docker compose -f ./docker/docker-compose-spark.yaml -f ./docker/docker-compose-airflow.yaml up -d
       
 2. To connect to docker container :
-> ./bash/start-docker.sh n
+> ./bash/start-docker.sh spark n
 3. To run all tests : 
-> ./bash/start-docker.sh n y
+> ./bash/start-docker.sh spark n y
 4. To run failed tests : 
-> ./bash/start-docker.sh n f
+> ./bash/start-docker.sh spark n f
 5. To run tasks using UI, use link below in your browser :
 > http://localhost:8000/run_task
 6. Spark Master UI

@@ -140,6 +140,7 @@ services:
   airflow-worker:
     <<: *airflow-common
     command: celery worker
+
     healthcheck:
       test:
         - "CMD-SHELL"
@@ -178,7 +179,7 @@ services:
     # yamllint disable rule:line-length
     command:
       - -c
-      - |
+      - |        
         function ver() {
           printf "%04d%04d%04d%04d" $${1//./ }
         }
@@ -238,17 +239,9 @@ services:
         mkdir -p /sources/logs /sources/dags /sources/plugins
         chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
         
-        airflow connections add 'spark_default' \
-            --conn-json '{
-                "conn_type": "spark",
-                "host": "spark://spark-master",
-                "port": "7077",                
-                "extra": {
-                  "queue": "root.default"
-                }
-            }'
-        
-        exec /entrypoint airflow version
+        exec /entrypoint bash /sources/airflow_add_connections.sh              
+        exec /entrypoint airflow version                                               
+
     # yamllint enable rule:line-length
     environment:
       <<: *airflow-common-env

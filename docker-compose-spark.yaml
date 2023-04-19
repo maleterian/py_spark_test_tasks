@@ -1,14 +1,14 @@
 version: '3'
 
 x-spark-worker:
-
+  cpus: 0.5
   environment:
     &spark-worker-env
     SPARK_MASTER : spark://spark-master:7077
-    SPARK_WORKER_CORES : 2
-    SPARK_WORKER_MEMORY : 2G
-    SPARK_DRIVER_MEMORY : 1G
-    SPARK_EXECUTOR_MEMORY : 1G
+    SPARK_WORKER_CORES : 1
+    SPARK_WORKER_MEMORY : 1G
+    SPARK_DRIVER_MEMORY : 512MB
+    SPARK_EXECUTOR_MEMORY : 512MB
     SPARK_WORKLOAD : worker
 
   depends_on:
@@ -18,13 +18,12 @@ x-spark-worker:
 
 x-spark-common:
   &spark-common
-  image: ${DOCKER_SPARK_IMAGE:-cluster-apache-spark:3.0.2}
+  image: ${SPARK_IMAGE:-cluster-apache-spark:3.0.2}
   volumes:
-    - ./src:/opt/spark-apps
-    - ./data:/opt/spark-data
-    - ./src/test:/opt/spark-apps/test
-    - ./log:/opt/spark-log
     - ./bash:/opt/bash
+    - ./data:/opt/spark-data
+    - ./src:/opt/spark-apps
+    - ./src/test:/opt/spark-apps/test
 
 services:
 

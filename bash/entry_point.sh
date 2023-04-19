@@ -11,9 +11,10 @@ mkdir -p $SPARK_LOG_DIR && \
   ln -sf /dev/stdout $SPARK_MASTER_LOG && \
   ln -sf /dev/stdout $SPARK_WORKER_LOG
 
-mkdir -p $SERVICE_BASH \
+mkdir -p $SCRIPTS_SERVICE \
          $SPARK_TEST \
-         $SPARK_LOG
+         $SPARK_LOG \
+         $SPARK_APPS_LOG
 
 echo "start ssh"
 /usr/sbin/sshd -D &

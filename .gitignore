@@ -1,4 +1,4 @@
-airflow/logs/*
+logs/
 log/
 data/df/task*
 data/sql/task*

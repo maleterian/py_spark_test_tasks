@@ -17,15 +17,18 @@ alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
 
-cd /opt/spark-apps
+cd /opt/spark-apps 
 
 # APP params
-export SPARK_DATA=/opt/spark-data
-export SPARK_APPS=/opt/spark-apps/main
-export SPARK_TEST=/opt/spark-apps/test
-export SERVICE_BASH=/opt/bash/service
 export WEB_APP=/opt/spark-apps/main/web
 export WEB_APP_SCRIPT=app.py
+export SCRIPTS=/opt/bash/
+export SCRIPTS_SERVICE=$SCRIPTS/service
+export SPARK_DATA=/opt/spark-data
+export SPARK_APPS=/opt/spark-apps/main
+export SPARK_APPS_LOG=/opt/spark-apps/log
+export SPARK_APPS_TEST=/opt/spark-apps/test
+export SPARK_SUBMIT_SCRIPT=$SCRIPTS/spark-submit.sh
 
 #spark logs
 export SPARK_LOG=/opt/spark-log
