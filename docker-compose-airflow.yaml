@@ -63,6 +63,7 @@ x-airflow-common:
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/logs:/opt/airflow/logs
     - ./airflow/plugins:/opt/airflow/plugins
+    - ./bash:/opt/bash
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -139,7 +140,17 @@ services:
 
   airflow-worker:
     <<: *airflow-common
-    command: celery worker
+    hostname : airflow-worker
+    entrypoint: /bin/bash
+    # yamllint disable rule:line-length
+    command:
+      - -c
+      - |
+        if ! /opt/bash/ssh_setup.sh ; then
+          echo "Cannot copy keys"
+        fi
+        
+        exec /entrypoint airflow celery worker      
 
     healthcheck:
       test:

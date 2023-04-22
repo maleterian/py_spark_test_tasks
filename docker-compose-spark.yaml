@@ -1,11 +1,10 @@
 version: '3'
 
 x-spark-worker:
-  cpus: 0.5
   environment:
     &spark-worker-env
     SPARK_MASTER : spark://spark-master:7077
-    SPARK_WORKER_CORES : 1
+    SPARK_WORKER_CORES : 2
     SPARK_WORKER_MEMORY : 1G
     SPARK_DRIVER_MEMORY : 512MB
     SPARK_EXECUTOR_MEMORY : 512MB
@@ -19,6 +18,7 @@ x-spark-worker:
 x-spark-common:
   &spark-common
   image: ${SPARK_IMAGE:-cluster-apache-spark:3.0.2}
+  cpus: 0.5
   volumes:
     - ./bash:/opt/bash
     - ./data:/opt/spark-data
@@ -34,20 +34,21 @@ services:
       - "9090:8080"
       - "7077:7077"
       - "80:80"
+    hostname : spark-master
     environment:
-      - SPARK_LOCAL_IP=spark-master
       - SPARK_WORKLOAD=master
     healthcheck:
       test: "curl --fail --silent  http://spark-master:8080 || exit 1"
-      interval: 5s
-      timeout: 3s
-      retries: 3
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
 
   spark-worker-a:
     <<: *spark-common
+    hostname : spark-worker-a
     environment:
       <<: *spark-worker-env
-      SPARK_LOCAL_IP: spark-worker-a
     ports:
       - "9091:8080"
       - "7001:7000"
@@ -56,9 +57,9 @@ services:
 
   spark-worker-b:
     <<: *spark-common
+    hostname : spark-worker-b
     environment:
       <<: *spark-worker-env
-      SPARK_LOCAL_IP: spark-worker-b
     ports:
       - "9092:8080"
       - "7002:7000"

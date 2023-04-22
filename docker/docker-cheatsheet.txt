@@ -1,3 +1,9 @@
+docker build -f ./docker/DockerfileAirflow  -t airflow-with-spark:1.0.0 ./
+docker compose -f ./docker-compose-spark.yaml  -f ./docker-compose-airflow.yaml  up
+
+docker compose -f ./docker-compose-airflow.yaml  up
+
+
 docker build -f ./docker/DockerfileSpark --build-arg SPARK_VERSION=3.0.2 --build-arg HADOOP_VERSION=3.2 -t cluster-apache-spark:3.0.2 ./
 docker build -f ./docker/DockerfileAirflow  -t airflow-with-spark:1.0.0 ./
 
@@ -55,60 +61,9 @@ https://unix.stackexchange.com/questions/69314/automated-ssh-keygen-without-pass
 https://serverfault.com/questions/241588/how-to-automate-ssh-login-with-password
 
 $ ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
-Generating public/private rsa key pair.
-Enter file in which to save the key (/home/username/.ssh/id_rsa):
-Enter passphrase (empty for no passphrase):
-Enter same passphrase again:
-Your identification has been saved in /home/username/.ssh/id_rsa.
-Your public key has been saved in /home/username/.ssh/id_rsa.pub.
-
 $ ssh-copy-id -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null airflow@spark-master
-airflow@spark-master password: airflow
-
-apt-get install sshpass -y
-
-sshpass –p airflow ssh-copy-id airflow@spark-master
-
-ssh root@spark-master
-ssh root@spark-worker-a
-ssh root@spark-worker-b
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null airflow/airflow@spark-master
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null airflow@spark-worker-a
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null airflow@spark-worker-b
-
-chmod -v 700 ~/.ssh
-chmod -v 600 ~/.ssh/id_rsa*
-
-ls -la ~/.ssh
-ls -la ~/.ssh/id_rsa*
-
-#ssh -i /root/.ssh/id_rsa.pub spark-worker-a
-#ssh root@spark-master
-#ssh root@spark-worker-a
 
 git config --global core.eol lf
 git config --global core.autocrlf false
 
-airflow connections add ssh_default --conn-type ssh --conn-login airflow --conn-password airflow --conn-host spark-master --conn-port 22
 
-
-
-
-        exec /entrypoint airflow connections add 'spark_default' --conn-json \
-        '{
-          "conn_type": "spark",
-          "host": "spark://spark-master",
-          "port": "7077",
-          "extra": {
-            "queue": "root.default"
-          }
-        }' || true
-
-        exec /entrypoint airflow connections add 'ssh_default' --conn-json \
-        '{
-          "conn_type": "ssh",
-          "host": "spark-master",
-          "login": "airflow",
-          "password": "airflow",
-          "port": "22"
-        }' || true

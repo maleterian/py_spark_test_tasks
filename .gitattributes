@@ -1,4 +1,4 @@
-*.py eol=lf
+*.* eol=lf
 *.sh eol=lf
 *.sql eol=lf
 *.txt eol=lf

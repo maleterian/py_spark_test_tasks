@@ -4,10 +4,6 @@ ARG HADOOP_VERSION=3.2
 
 FROM openjdk:11.0.11-jre-slim-buster as builder
 
-# Add Dependencies for PySpark
-ARG SPARK_VERSION
-ARG HADOOP_VERSION
-
 #RUN echo 'root:root' | chpasswd
 
 RUN  apt-get update                \
@@ -47,30 +43,33 @@ RUN    wget --no-verbose -O  \
 # Apache spark environment
 FROM builder as apache-spark
 
-RUN mkdir -p /opt/bash/service/
+ARG SCRIPTS_SERVICE_SSH=/opt/bash/service/.ssh
+ARG shh_user=airflow
+ARG ssh_file=id_rsa
 
-COPY bash/.bashrc        /root/.bashrc
-COPY bash/.bashrc        /opt/bash/.bashrc
+ENV ssh_dir=/home/$shh_user/.ssh
+
+RUN mkdir -p $SCRIPTS_SERVICE_SSH
+
+COPY bash/.bashrc  /root/.bashrc
+COPY bash/.bashrc  /home/$shh_user/.bashrc
 
 COPY bash/start-spark.sh /opt/bash/start-spark.sh
-COPY bash/entry_point.sh /opt/bash/entry_point.sh
+COPY bash/entry_point_spark.sh /opt/bash/entry_point_spark.sh
 COPY bash/service/install_python_packages.sh /opt/bash/service/install_python_packages.sh
 COPY bash/service/requirements.txt /opt/bash/service/requirements.txt
 COPY bash/log4j.properties /opt/spark/conf/log4j.properties
 
 # enable SSH between containers
-ARG shh_user=airflow
-ARG ssh_dir=/home/$shh_user/.ssh
-ARG ssh_file=id_rsa
-
 RUN mkdir -p /var/run/sshd $ssh_dir && \
     chmod 0755 /var/run/sshd && \
     useradd -m $shh_user -s /bin/bash && \
-    echo "$shh_user:$shh_user" | chpasswd && \
+    echo $shh_user:$shh_user | chpasswd && \
     usermod -aG sudo $shh_user && \
     ssh-keygen -t rsa -N "" -f $ssh_dir/$ssh_file && \
-    cat  $ssh_dir/$ssh_file.pub >>  $ssh_dir/authorized_keys && \
-    chown -R $shh_user $ssh_dir && \
+    cat  $ssh_dir/$ssh_file.pub >>  $ssh_dir/authorized_keys
+
+RUN chown -R $shh_user $ssh_dir && \
     chmod 600 $ssh_dir/$ssh_file && \
     chmod 700 $ssh_dir
 
@@ -83,7 +82,7 @@ RUN ["/bin/bash", "/opt/bash/service/install_python_packages.sh" ]
 
 EXPOSE 8080 7077 6066 22
 
-ENTRYPOINT ["/opt/bash/entry_point.sh"]
+ENTRYPOINT ["/opt/bash/entry_point_spark.sh"]
 
 
 

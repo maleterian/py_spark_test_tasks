@@ -12,18 +12,20 @@ function add_connection() {
 }
 
 add_connection 'spark_default' '{
-     "conn_type": "spark",
-     "host": "spark://spark-master",
-     "port": "7077",
-     "extra": {
-     "queue": "root.default"
+    "conn_type": "spark",
+    "host": "spark://spark-master",
+    "port": "7077",
+    "extra": {
+        "queue": "root.default"
     }
 }'
 
 add_connection 'ssh_default' '{
-  "conn_type": "ssh",
-  "host": "spark-master",
-  "login": "airflow",
-  "password": "airflow",
-  "port": "22"
+    "conn_type": "ssh",
+    "host": "spark-master",
+    "login": "airflow",
+    "port": "22",
+    "extra": {
+        "key_file": "/home/airflow/.ssh/id_rsa"
+    }
 }'

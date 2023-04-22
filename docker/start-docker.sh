@@ -38,6 +38,7 @@ export SPARK_IMAGE="cluster-apache-spark:$L_IN_SPARK_VERSION"
 export AIRFLOW_IMAGE_NAME=airflow-with-spark:1.0.0
 export SPARK_VERSION=$L_IN_SPARK_VERSION
 export HADOOP_VERSION=$L_IN_HADOOP_VERSION
+#export AIRFLOW_UID=100
 
 function fn_run_command() {
   declare l_in_command=${1:?}

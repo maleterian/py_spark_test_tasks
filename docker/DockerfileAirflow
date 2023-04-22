@@ -17,31 +17,33 @@ RUN  apt-get update \
          iputils-ping
 
 # enable SSH between containers
-RUN mkdir -p /var/run/sshd && \
+ARG SCRIPTS_SERVICE_SSH=/opt/bash/service/.ssh
+ARG SHH_USER=airflow
+
+RUN mkdir -p /var/run/sshd $SCRIPTS_SERVICE_SSH && \
     chmod 0755 /var/run/sshd && \
-    echo 'airflow:airflow' | chpasswd && \
-    usermod -aG sudo airflow
+    echo "$SHH_USER:$SHH_USER" | chpasswd && \
+    usermod -aG sudo $SHH_USER
+
+RUN ssh-keygen -A
 
 # for reducing image size comment out
 #RUN     apt-get autoremove -yqq --purge \
 #     && apt-get clean                   \
 #     && rm -rf /var/lib/apt/lists/*
 
-CMD ["/usr/sbin/sshd", "-D"]
-EXPOSE 22
-
-#RUN mkdir -p /home/airflow/.ssh
-#COPY bash/service/.ssh/* /home/airflow/.ssh
-
 USER airflow
+
 RUN pip install apache-airflow-providers-apache-spark \
         apache-airflow-providers-ssh
-RUN mkdir -p /home/airflow/.ssh
 
-#COPY bash/service/.ssh/* /home/airflow/.ssh
-#USER root
-#RUN chmod 600 /home/airflow/.ssh/id_rsa && \
-#    chown airflow /home/airflow/.ssh/* \
+COPY  bash/.bashrc /home/$SHH_USER
+COPY  bash/ssh_setup.sh /opt/bash/ssh_setup.sh
+
+EXPOSE 22
+
+
+
 
 
 
