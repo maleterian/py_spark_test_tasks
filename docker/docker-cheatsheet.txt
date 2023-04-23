@@ -28,6 +28,9 @@ docker container exec -it py_spark_test_tasks-airflow-worker-1 /bin/bash
 docker container exec -it py_spark_test_tasks-spark-worker-a-1 /bin/bash
 docker container exec -it py_spark_test_tasks-spark-worker-b-1 /bin/bash
 
+docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
+
+
 docker compose down
 docker compose config
 
@@ -67,3 +70,15 @@ git config --global core.eol lf
 git config --global core.autocrlf false
 
 
+
+# - "spark.executor.instances=5"
+# - "spark.executor.memory=48g"
+# - "spark.executor.cores=15"
+# - "spark.default.parallelism=150"
+# - "spark.driver.memory=48g"
+# - "spark.driver.cores=15"
+# - "spark.yarn.executor.memoryOverhead=8192"
+# - "spark.yarn.driver.memoryOverhead=8192"
+# - "spark.dynamicAllocation.enabled=false"
+# - "spark.executor.extraJavaOptions=-Xss512m"
+# - "spark.driver.extraJavaOptions=-Xss512m"
