@@ -3,7 +3,7 @@ docker compose -f ./docker-compose-spark.yaml  -f ./docker-compose-airflow.yaml 
 
 docker compose -f ./docker-compose-airflow.yaml  up
 
-
+# --no-cache
 docker build -f ./docker/DockerfileSpark --build-arg SPARK_VERSION=3.0.2 --build-arg HADOOP_VERSION=3.2 -t cluster-apache-spark:3.0.2 ./
 docker build -f ./docker/DockerfileAirflow  -t airflow-with-spark:1.0.0 ./
 
@@ -27,6 +27,8 @@ docker container exec -u root -it py_spark_test_tasks-airflow-worker-1 /bin/bash
 docker container exec -it py_spark_test_tasks-airflow-worker-1 /bin/bash
 docker container exec -it py_spark_test_tasks-spark-worker-a-1 /bin/bash
 docker container exec -it py_spark_test_tasks-spark-worker-b-1 /bin/bash
+
+spark-submit pyspark_task.py -g 1 -t 1 -tt df
 
 docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
 

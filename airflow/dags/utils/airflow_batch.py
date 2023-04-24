@@ -1,6 +1,17 @@
 from airflow import DAG
 from airflow.providers.ssh.operators.ssh import SSHOperator
+import os
 
+AWS_BUCKET = os.getenv("AWS_BUCKET", "eu-python-retraining-airflow-emr")
+PROJECT_NAME = os.getenv("PROJECT_NAME", "py_spark_test_tasks")
+
+AWS_S3_PROJECT_LOCATION = f"s3://{AWS_BUCKET}/{PROJECT_NAME}"
+AWS_S3_BOOT_STRAP_ACTIONS_SCRIPT_PATH = f"{AWS_S3_PROJECT_LOCATION}/cloud/aws/bootstrap_actions.sh"
+
+EMR_MANAGED_MASTER_SECURITY_GROUP = "sg-04cf4867d3b16f5c6"
+EMR_MANAGED_SLAVE_SECURITY_GROUP  = "sg-092b6c6432801b42e"
+EMR_SUBNET= "subnet-06ae5853fb2ddbb80"
+EMR_KEY_NAME  = "ubart-python-retraining-program"
 
 def get_spark_submit_operator(group_id: int, task_id: int, dag: DAG):
     return SSHOperator(

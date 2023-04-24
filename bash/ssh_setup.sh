@@ -11,7 +11,7 @@ if [[ -s $l_shared_key ]]; then
     print_info "Found $l_shared_key "
 
     print_info "Creating $SSH_DIR"
-    mkdir -v -p $SSH_DIR
+    mkdir -v -p $SSH_DIR $SCRIPTS_SERVICE_SSH
 
     print_info "Copying keys"
     cp -v $SCRIPTS_SERVICE_SSH/* $SSH_DIR

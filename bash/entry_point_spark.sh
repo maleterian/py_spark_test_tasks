@@ -14,7 +14,8 @@ mkdir -p $SPARK_LOG_DIR && \
 mkdir -p $SCRIPTS_SERVICE \
          $SPARK_APPS_TEST \
          $SPARK_LOG \
-         $SPARK_APPS_LOG
+         $SPARK_APPS_LOG \
+         $SCRIPTS_SERVICE_SSH
 
 print_info "start ssh"
 /usr/sbin/sshd -D &
