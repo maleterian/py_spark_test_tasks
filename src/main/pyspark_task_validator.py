@@ -213,12 +213,21 @@ def fn_create_df_from_csv_file(in_file_name: str = "*",
     """
     Function for registering file in SQL engine as temp view
     """
+    protocol_postfix = "://"
+    os_file_protocol = "file"
+
+    file_path = f"{in_folder_path}/{in_file_name}.{FILE_TYPE_CSV}"
+
+    if protocol_postfix in in_folder_path:
+        file_path_with_protocol = file_path
+    else:
+        file_path_with_protocol = os_file_protocol + protocol_postfix + file_path
 
     l_df = SPARK_SESSION.read \
         .option("header", STR_TRUE) \
         .option("inferSchema", STR_TRUE) \
         .option("sep", in_separator) \
-        .csv(f"file://{in_folder_path}/{in_file_name}.{FILE_TYPE_CSV}") \
+        .csv(f"{file_path_with_protocol}") \
         .repartition(in_repartition)
 
     l_view_name = fn_get_default_view_name(in_file_name, in_view_name)

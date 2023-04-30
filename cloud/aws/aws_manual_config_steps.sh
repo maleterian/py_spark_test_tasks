@@ -12,6 +12,7 @@ export aws_bucket_region=eu-central-1
 export aws_bucket_name=eu-python-retraining-airflow-emr
 export aws_account_id=XXXXX
 export project_name=$(basename `pwd`)
+export aws_s3_project_location="s3://$aws_bucket_name/$project_name"
 
 # create aws cli user
 aws iam create-user        --user-name $aws_cli_user
@@ -67,8 +68,8 @@ aws s3api put-bucket-policy   \
 
 #Copy whole project to bucket
 aws s3 ls "s3://$aws_bucket_name" --profile $aws_cli_user
-aws s3 rm "s3://$aws_bucket_name/$project_name" --recursive --profile $aws_cli_user
-aws s3 cp ./  "s3://$aws_bucket_name/$project_name" --recursive \
+aws s3 rm "$aws_s3_project_location" --recursive --profile $aws_cli_user
+aws s3 cp ./  "$aws_s3_project_location" --recursive \
     --exclude "id_rsa*" \
     --exclude "*.iml"   \
     --exclude ".idea/*" \
@@ -86,9 +87,27 @@ aws s3 cp ./  "s3://$aws_bucket_name/$project_name" --recursive \
     --profile $aws_cli_user
 
 #EMR
-aws ec2 create-key-pair --key-name MY-EMR-KEY-PAIR --query 'KeyMaterial' --output text > MY-EMR-KEY-PAIR.pem
-aws emr create-cluster --name MY-EMR-CLUSTER --release-label emr-6.3.0 \
---instance-count 3 --instance-type m5.xlarge --ec2-attributes KeyName=MY-EMR-KEY-PAIR \
---applications Name=Spark --use-default-roles --enable-debugging \
---service-role EMR_DefaultRole --security-configuration 'Name=MyEmrSecurityConfig'
+# aws ec2 create-key-pair --key-name MY-EMR-KEY-PAIR --query 'KeyMaterial' --output text > MY-EMR-KEY-PAIR.pem
+# aws emr create-cluster --name MY-EMR-CLUSTER --release-label emr-6.3.0 \
+# --instance-count 3 --instance-type m5.xlarge --ec2-attributes KeyName=MY-EMR-KEY-PAIR \
+# --applications Name=Spark --use-default-roles --enable-debugging \
+# --service-role EMR_DefaultRole --security-configuration 'Name=MyEmrSecurityConfig'
+
+
+export SCRIPTS=/opt/bash
+export SPARK_DATA=$aws_s3_project_location/data
+export SPARK_APPS=/opt/spark-apps/main
+export SPARK_APPS_LOG=/opt/spark-apps/log
+export SPARK_APPS_TEST=/opt/spark-apps/test
+export SPARK_SUBMIT_SCRIPT=$SCRIPTS/spark-submit.sh
+
+# python var
+export PYSPARK_PYTHON=python3
+export PYTHONHASHSEED=1
+export PYTHONPATH=$PYTHONPATH:$SPARK_APPS
+
+mkdir -p $SCRIPTS    \
+         $SPARK_APPS \
+         $SPARK_APPS_LOG \
+         $SPARK_APPS_TEST
 
