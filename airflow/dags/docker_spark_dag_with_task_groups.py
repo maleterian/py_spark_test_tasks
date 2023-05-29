@@ -1,7 +1,7 @@
 from airflow import DAG
 from airflow.utils.task_group import TaskGroup
 from datetime import datetime
-from utils.airflow_batch import get_spark_submit_operator
+from utils.aws_airflow_batch import get_spark_submit_operator
 
 default_args = {
     'owner': 'airflow',

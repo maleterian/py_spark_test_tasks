@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/PySparkTestTasks.iml" filepath="$PROJECT_DIR$/PySparkTestTasks.iml" />
+      <module fileurl="file://$PROJECT_DIR$/py_spark_test_tasks.iml" filepath="$PROJECT_DIR$/py_spark_test_tasks.iml" />
     </modules>
   </component>
 </project>

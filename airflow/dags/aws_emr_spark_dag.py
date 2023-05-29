@@ -4,7 +4,7 @@ from airflow.providers.amazon.aws.operators.emr import EmrCreateJobFlowOperator
 from airflow.providers.amazon.aws.operators.emr import EmrTerminateJobFlowOperator
 from datetime import datetime, timedelta
 
-from utils.airflow_batch import *
+from utils.aws_airflow_batch import *
 
 default_args = {
     'owner': 'airflow',
