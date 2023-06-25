@@ -3,3 +3,5 @@
 *.txt eol=lf
 *.yml eol=lf
 *.yaml eol=lf
+*.bashrc eol=lf
+*.properties eol=lf
