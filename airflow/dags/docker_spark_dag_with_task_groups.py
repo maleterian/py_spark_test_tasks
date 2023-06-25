@@ -5,7 +5,7 @@ from utils.aws_airflow_batch import get_spark_submit_operator
 
 default_args = {
     'owner': 'airflow',
-    'start_date': datetime(2022, 4, 23),
+    'start_date': datetime.now(),
 }
 
 with DAG('spark_submit_all_tasks', default_args=default_args, schedule_interval=None) as dag:
