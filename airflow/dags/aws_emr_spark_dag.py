@@ -3,13 +3,18 @@ from airflow.providers.amazon.aws.operators.emr import EmrAddStepsOperator
 from airflow.providers.amazon.aws.operators.emr import EmrCreateJobFlowOperator
 from airflow.providers.amazon.aws.operators.emr import EmrTerminateJobFlowOperator
 from datetime import datetime, timedelta
+#from airflow.utils.dates import days_ago
+
+from airflow.providers.amazon.aws.sensors.emr import EmrStepSensor
 
 from utils.aws_airflow_batch import *
+
+DAG_ID = get_dag_name(__file__)
 
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2023, 1, 1),
+    'start_date': datetime.now(),
     'email': ['airflow@example.com'],
     'email_on_failure': False,
     'email_on_retry': False,
@@ -18,7 +23,7 @@ default_args = {
 }
 
 dag = DAG(
-    'emr_example',
+    DAG_ID,
     default_args=default_args,
     description='Copy PySpark files to EMR',
     schedule_interval=None,
@@ -76,6 +81,8 @@ create_cluster = EmrCreateJobFlowOperator(
             }
         ],
         'VisibleToAllUsers': True,
+        'JobFlowRole': JOB_FLOW_ROLE,
+        'ServiceRole': SERVICE_ROLE,
         'BootstrapActions': bootstrap_actions  # Add the bootstrap actions here
     },
     aws_conn_id='aws_default',
@@ -104,7 +111,17 @@ spark_submit = EmrAddStepsOperator(
     dag=dag,
 )
 
-# Step 4: Terminate the EMR cluster
+# Step 4: wait till cluster is up and step is executed
+step_checker = EmrStepSensor(
+    task_id="watch_step",
+    job_flow_id="{{ task_instance.xcom_pull('create_cluster', key='return_value') }}",
+    step_id="{{ task_instance.xcom_pull(task_ids='spark_submit', key='return_value')[0] }}",
+    aws_conn_id="aws_default",
+    dag=dag,
+)
+
+
+# Step 5: Terminate the EMR cluster
 terminate_cluster = EmrTerminateJobFlowOperator(
     task_id='terminate_cluster',
     job_flow_id="{{ task_instance.xcom_pull('create_cluster', key='return_value') }}",
@@ -113,4 +130,4 @@ terminate_cluster = EmrTerminateJobFlowOperator(
 )
 
 # Define the DAG dependencies
-create_cluster >> spark_submit >> terminate_cluster
+create_cluster >> spark_submit >> step_checker >> terminate_cluster

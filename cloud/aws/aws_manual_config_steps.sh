@@ -1,3 +1,5 @@
+#https://www.youtube.com/watch?v=snfkRC78oQ8&ab_channel=StartDataEngineering
+
 # install awscli
 sudo apt-get update --fix-missing
 # way 1
