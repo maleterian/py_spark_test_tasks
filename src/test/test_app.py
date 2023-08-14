@@ -12,12 +12,6 @@ from pyspark_task_validator import Task, TASK_TYPES_LIST
 DICT_ALL_GROUP_TASKS = {}
 
 l_test_task_types_tuple = "in_task_type", TASK_TYPES_LIST
-l_dict_tasks_tuple = "in_task_group_id,in_task_id", [
-    task for task in t.LIST_ALL_TASKS if task.group_id <= 4
-    # (1, 1),
-    # (2, 5)
-]
-
 
 @pytest.fixture(scope='session', autouse=True)
 def fn_init_and_cleanup_test_session():
@@ -36,7 +30,7 @@ def fn_init_and_cleanup_test_session():
     yield tv.SPARK_SESSION
 
     # Will be executed after last
-    tv.fn_clean_up_all_folders()
+    #tv.fn_clean_up_all_folders()
     tv.fn_close_session()
 
 
@@ -111,20 +105,17 @@ def test_task_group_invalid_parameters(in_task_group_id, in_task_id, in_task_typ
                         in_dict_all_group_tasks=DICT_ALL_GROUP_TASKS)
 
 
-
-@pytest.mark.parametrize(*l_dict_tasks_tuple)
-@pytest.mark.parametrize(*l_test_task_types_tuple)
-def test_task_data(in_task_group_id, in_task_id, in_task_type):
+def test_task_data(task_group_id, task_id, task_type):
     """
     Testing all tasks using SQL and dataframe code
-    :param in_task_group_id:
-    :param in_task_id:
-    :param in_task_type:
+    :param task_group_id:
+    :param task_id:
+    :param task_type:
     :return:
     """
-    tv.fn_run_test_task(in_task_group_id=in_task_group_id,
-                        in_task_id=in_task_id,
-                        in_task_type=in_task_type,
+    tv.fn_run_test_task(in_task_group_id=task_group_id,
+                        in_task_id=task_id,
+                        in_task_type=task_type,
                         in_dict_all_group_tasks=DICT_ALL_GROUP_TASKS,
                         in_test_task_filter=DICT_TEST_TASK_FILTERS)
 

@@ -1,4 +1,4 @@
-# Test project for pyspark
+# Training project for PySpark
 
 ## Requirements:
 * Docker ( on Linux or on Windows with WSL support to run bash scripts )
@@ -51,11 +51,21 @@ Summary : Use spark sql and dataframes API for data processing
       2. SQLs
       3. Task group
       4. Particular Task
-   5. Make sure that all test passed, 
-      1. run commands 
-      > ./docker/start-docker.sh spark y y
-      2. or in master container execute 
-      > pytest /opt/spark-apps/test
+   5. Make sure that all test passed 
+      1. Option1: Run all tests using prepared bash script  
+      ```
+      ./docker/start-docker.sh spark y y
+      ```
+      2. Option2: Connect to master node and run all tests
+      ```
+      docker container exec -it py_spark_test_tasks-spark-master-1 /bin/bash
+      pytest /opt/spark-apps/test
+      ```
+      3. Option3: Run one test for task (for debug/development)
+      ```
+      pytest /opt/spark-apps/test/test_app.py --task_type sql --task_group_id 2 --task_id 1 --skip-xfail       
+      pytest /opt/spark-apps/test/test_app.py --task_type df  --task_group_id 2 --task_id 1 --skip-xfail
+      ```
    
 
 ### 2. Python core task (hard)
