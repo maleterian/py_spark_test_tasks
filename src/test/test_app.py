@@ -114,19 +114,17 @@ def test_task_group_invalid_parameters(in_task_group_id, in_task_id, in_task_typ
 
 
 @pytest.mark.spark
-@pytest.mark.parametrize(*l_dict_tasks_tuple)
-@pytest.mark.parametrize(*l_test_task_types_tuple)
-def test_task_data(in_task_group_id, in_task_id, in_task_type):
+def test_task_data(task_group_id, task_id, task_type):
     """
     Testing all tasks using SQL and dataframe code
-    :param in_task_group_id:
-    :param in_task_id:
-    :param in_task_type:
+    :param task_group_id:
+    :param task_id:
+    :param task_type:
     :return:
     """
-    tv.fn_run_test_task(in_task_group_id=in_task_group_id,
-                        in_task_id=in_task_id,
-                        in_task_type=in_task_type,
+    tv.fn_run_test_task(in_task_group_id=task_group_id,
+                        in_task_id=task_id,
+                        in_task_type=task_type,
                         in_dict_all_group_tasks=DICT_ALL_GROUP_TASKS,
                         in_test_task_filter=DICT_TEST_TASK_FILTERS)
 
