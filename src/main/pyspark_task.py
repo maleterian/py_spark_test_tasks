@@ -23,7 +23,8 @@ _l_dict_test_sql = {
     Task(3, 5): "clients_sorted_by_first_name_descending",
     Task(4, 1): "person_with_biggest_balance_in_country",
     Task(4, 2): "invalid_accounts",
-    Task(4, 3): "single_dataset"
+    Task(4, 3): "single_dataset",
+    Task(5, 1): "account_types_count",
 }
 
 DICT_TEST_TASKS_SQL = {k: f"{k.group_id}.{k.task_id}_{v}" for k, v in _l_dict_test_sql.items()}
@@ -246,6 +247,18 @@ def fn_get_dict_with_all_tasks() -> Dict[int, List[TaskDef]]:
             TaskDef(fn_get_all_info_broadcast())
         ]
 
+    def fn_get_task_def_list5() -> List[TaskDef]:
+        """
+        Task 5 Data Frames List
+        """
+
+        l_df_account_types_count = df_transactions \
+            .groupBy("account_type") \
+            .agg(f.count("id").alias("cnt"))
+
+        return [
+            TaskDef(l_df_account_types_count),
+        ]
 
     tv.fn_get_or_create_spark_session()
 
