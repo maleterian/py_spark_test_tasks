@@ -41,78 +41,18 @@ def fn_get_dict_with_all_tasks() -> Dict[int, List[TaskDef]]:
         """
         Task 1 Data Frames List
         """
-
-        l_df_account_types_count = df_transactions \
-            .groupBy("account_type") \
-            .agg(f.countDistinct("id").alias("cnt"))
-
-        l_df_account_balance = df_transactions \
-            .groupBy(f.col("id")) \
-            .agg(f.round(f.sum("amount"), tv.ROUND_DIGITS).alias("balance"),
-                 f.max("transaction_date").alias("latest_date"))
-
+        # ORDER MATTERS !!!
         return [
             TaskDef(l_df_account_types_count),
             TaskDef(l_df_account_balance),
         ]
-
-    def fn_inner_join_acc_names_to_df(in_dataframe: tv.DataFrame) -> tv.DataFrame:
-        """
-        Inner join of "first_name", "last_name" by id
-        """
-
-        return in_dataframe.join(
-            f.broadcast(df_accounts.select("id", "first_name", "last_name")),
-            "id",
-            "inner")
 
     def fn_get_task_def_list2() -> List[TaskDef]:
         """
         Task 2 Data Frames List
         """
 
-        l_df_accounts_btw_18_30 = df_accounts.selectExpr(
-            "id",
-            "first_name",
-            "last_name",
-            "age",
-            "country"
-        ).where("age between 18 and 30")
-
-        l_df_accounts_non_pro = df_transactions.selectExpr(
-            "id",
-            "account_type"
-        ).where(f.col("account_type") != 'Professional') \
-            .groupBy("id") \
-            .agg(f.count("id").alias("cnt"))
-
-        l_l_df_accounts_non_pro_with_user_info = fn_inner_join_acc_names_to_df(l_df_accounts_non_pro)
-
-        l_df_accounts_top5 = df_accounts \
-            .groupBy("first_name") \
-            .agg(f.count("first_name").alias("cnt")) \
-            .orderBy(f.col("cnt").desc()) \
-            .limit(5)
-
-        l_df_total_expenses = df_transactions.selectExpr(
-            "id",
-            " case when amount < 0 then amount else 0 end as expenses",
-            " case when amount > 0 then amount else 0 end as earnings "
-        ).groupBy("id") \
-            .agg(f.round(f.abs(f.sum("expenses")), tv.ROUND_DIGITS).alias("expenses"),
-                 f.round(f.sum("earnings"), tv.ROUND_DIGITS).alias("earnings"))
-
-        l_df_total_expenses_with_user_info = fn_inner_join_acc_names_to_df(l_df_total_expenses)
-
-        l_df_total_expenses_pivot = df_transactions.selectExpr(
-            "id",
-            "case when amount > 0 then amount else 0 end as earnings",
-            "int(substring(transaction_date, 1, 4)) as tr_year",
-        ).groupBy("id") \
-            .pivot("tr_year") \
-            .agg(f.round(f.sum("earnings").alias("earnings"), tv.ROUND_DIGITS)) \
-            .fillna(value=0)
-
+        # ORDER MATTERS !!!
         return [
             TaskDef(l_df_accounts_btw_18_30),
             TaskDef(l_l_df_accounts_non_pro_with_user_info),
@@ -126,31 +66,7 @@ def fn_get_dict_with_all_tasks() -> Dict[int, List[TaskDef]]:
         Task 3 Data Frames List
         """
 
-        l_df_first_last_concatenated = df_accounts \
-            .selectExpr("concat(first_name,  ' ', last_name) as first_last_concat") \
-            .where("age between 18 and 30").distinct()
-
-        l_df_avg_transaction_amount_2021_per_client = df_transactions.selectExpr(
-            "id",
-            "amount"
-        ).where("transaction_date like '2021%'") \
-            .groupBy("id") \
-            .agg(f.round(f.avg("amount"), tv.ROUND_DIGITS).alias("avg_amount"))
-
-        l_df_account_types_count = df_transactions \
-            .groupBy(f.col("account_type")) \
-            .agg(f.countDistinct("id").alias("cnt"))
-
-        l_df_top_10_positive = df_transactions.where("amount > 0") \
-            .groupBy("id") \
-            .agg(f.round(f.sum("amount"), tv.ROUND_DIGITS).alias("total_amount")) \
-            .orderBy(f.col("total_amount").desc()) \
-            .limit(10)
-
-        l_df_clients_sorted_by_first_name_descending = df_accounts \
-            .select("first_name", "last_name").distinct() \
-            .orderBy(f.col("first_name").desc())
-
+        # ORDER MATTERS !!!
         return [
             TaskDef(l_df_first_last_concatenated),
             TaskDef(l_df_avg_transaction_amount_2021_per_client),
@@ -159,95 +75,20 @@ def fn_get_dict_with_all_tasks() -> Dict[int, List[TaskDef]]:
             TaskDef(l_df_clients_sorted_by_first_name_descending),
         ]
 
-    def fn_get_richest_person_in_country_broadcast():
-        """
-        DF for richest person using broadcast
-        """
 
-        l_richest_person_transactions = df_transactions.selectExpr(
-            "id",
-            "amount"
-        ).groupBy("id") \
-            .agg(
-            f.round(f.sum("amount"), tv.ROUND_DIGITS).alias("total_amount")
-        )
-
-        l_df_richest_person_account_info = l_richest_person_transactions.join(
-            f.broadcast(df_accounts),
-            "id",
-            "inner"
-        ).withColumn(colName="rn", col=f.expr("row_number() over (partition by country order by total_amount desc)")) \
-            .selectExpr(
-            "id",
-            "first_name",
-            "last_name",
-            "country",
-            "total_amount",
-        ).where("rn  == 1 ")
-
-        l_df_richest_person_all_info = l_df_richest_person_account_info.join(
-            f.broadcast(df_country_abbr),
-            df_country_abbr.abbreviation == l_df_richest_person_account_info.country,
-            "inner"
-        ).drop("abbreviation", "country", "id")
-
-        return l_df_richest_person_all_info
-
-    def fn_get_invalid_accounts():
-        """
-        DF for invalid accounts using broadcast
-        """
-
-        l_df_tr_filtered = df_transactions \
-            .where(" account_type = 'Professional' ") \
-            .drop("country")
-
-        l_df_acc_filtered = df_accounts.where(" age < 26 ") \
-            .withColumnRenamed("id", "account_id")
-
-        l_df_tr_invalid_acc = l_df_tr_filtered.join(f.broadcast(l_df_acc_filtered),
-                                                    l_df_acc_filtered.account_id == l_df_tr_filtered.id,
-                                                    "inner")
-
-        return l_df_tr_invalid_acc
-
-    def fn_get_all_info_broadcast():
-        """
-        DF for all data in one place using broadcast
-        """
-
-        l_df_trans_info = df_transactions \
-            .select("id",
-                    "amount",
-                    "account_type") \
-            .groupBy("id", "account_type") \
-            .agg(f.round(f.sum("amount"), tv.ROUND_DIGITS).alias("total_amount"))
-        # f.concat_ws(",", f.collect_list("account_type")).alias("account_types")
-
-        l_df_trans_and_acc_info = l_df_trans_info \
-            .join(f.broadcast(df_accounts),
-                  "id",
-                  "inner") \
-            .withColumnRenamed("country", "abbreviation")
-
-        l_df_all_info = l_df_trans_and_acc_info \
-            .join(f.broadcast(df_country_abbr),
-                  "abbreviation",
-                  "inner").drop("abbreviation")
-
-        return l_df_all_info
 
     def fn_get_task_def_list4() -> List[TaskDef]:
         """
         Task 4 Data Frames List
         """
-
+        # ORDER MATTERS !!!
         return [
-            TaskDef(fn_get_richest_person_in_country_broadcast()),
-            TaskDef(fn_get_invalid_accounts()),
-            TaskDef(fn_get_all_info_broadcast())
+            TaskDef(l_df_richest_person_in_country_broadcast),
+            TaskDef(l_df_invalid_accounts),
+            TaskDef(l_df_all_info_broadcast)
         ]
 
+    # Do not modify this one. It is for internal tests
     def fn_get_task_def_list5() -> List[TaskDef]:
         """
         Task 5 Data Frames List
