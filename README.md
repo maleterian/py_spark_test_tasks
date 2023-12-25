@@ -9,8 +9,8 @@
       - SPARK_EXECUTOR_MEMORY : 1G * 3
 
 ## Project data
-Tasks Description:
-* Task_Description.txt
+Data transformation tasks (1-4) and schema description:
+* data_transformation_task_description.txt
 
 Inputs:
 * data/tables/accounts/*.parquet
@@ -40,7 +40,7 @@ Expected outputs:
 
 ## Project tasks
 ### 1. Pyspark Task : Spark API + Spark SQL + pytest (easy difficulty)
-Summary : Use spark sql and dataframes API for data processing. Implement all tasks described in Task_Description.txt 
+Summary : Use spark sql and dataframes API for data processing. Implement all tasks described in data_transformation_task_description.txt 
    1. Write sql code in all src/main/resources/sql/task*/
    2. Write pyspark code for all dataframes in pyspark_task.py 
    3. Check how we can invoke subsets of tests for
@@ -75,8 +75,11 @@ Summary : Implement modules specified below by yourself
 
 ### 3. Airflow integration task (easy) 
 Summary: Run all tasks using airflow Group DAG.
-You need to run Main script **/opt/spark-apps/main/pyspark_task.py** and its parameters using Airflow
-User and PWD for AIRFLOW UI http://localhost:8080/ is airflow/airflow
+```
+You need to run Main script /opt/spark-apps/main/pyspark_task.py using Airflow.
+Script parameters described in "How to work with project".
+User and PWD for AirFlow UI http://localhost:8080/ is airflow/airflow.
+```
 
    1. Start spark cluster and airflow  
    > ./docker/start-docker.sh all y y
