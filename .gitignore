@@ -4,8 +4,9 @@ log/
 logs/
 data/df/task*
 data/sql/task*
-data/*.csv
+data/output/*
 workspace.xml
 *.crc
 _SUCCESS
 .pytest_cache
+.idea
