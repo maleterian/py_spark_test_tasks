@@ -1,0 +1,86 @@
+docker build -f ./docker/DockerfileAirflow  -t airflow-with-spark:1.0.0 ./
+docker compose -f ./docker-compose-spark.yaml  -f ./docker-compose-airflow.yaml  up
+
+docker compose -f ./docker-compose-airflow.yaml  up
+
+# --no-cache
+docker build -f ./docker/DockerfileSpark --build-arg SPARK_VERSION=3.0.2 --build-arg HADOOP_VERSION=3.2 -t cluster-apache-spark:3.0.2 ./
+docker build -f ./docker/DockerfileAirflow  -t airflow-with-spark:1.0.0 ./
+
+docker compose -f ./docker-compose-airflow.yaml up -d
+docker compose -f ./docker-compose-spark.yaml up -d
+
+docker compose -f docker-compose-spark.yaml -f docker-compose-airflow.yaml up -d
+
+docker compose -f docker-compose-with-airflow.yaml down
+docker compose -f docker-compose-spark.yaml down
+
+docker compose -f docker-compose-spark.yaml -f docker-compose-airflow.yaml down
+
+# for normal use
+docker compose up -d
+# for debug run in normal mode
+docker compose up
+
+docker container exec -it py_spark_test_tasks-spark-master-1 /bin/bash
+docker container exec -u root -it py_spark_test_tasks-airflow-worker-1 /bin/bash
+docker container exec -it py_spark_test_tasks-airflow-worker-1 /bin/bash
+docker container exec -it py_spark_test_tasks-spark-worker-a-1 /bin/bash
+docker container exec -it py_spark_test_tasks-spark-worker-b-1 /bin/bash
+
+spark-submit pyspark_task.py -g 1 -t 1 -tt df
+
+docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
+
+
+docker compose down
+docker compose config
+
+cd /mnt/c/Users/ubart/IdeaProjects/py_spark_test_tasks
+export AIRFLOW_IMAGE_NAME=airflow-with-spark:1.0.0
+
+docker compose ps
+docker system prune
+
+
+Procedure
+    Stop the container(s) using the following command:
+    docker-compose down
+
+    Delete all containers using the following command:
+    docker rm -f $(docker ps -a -q)
+
+    Delete all volumes using the following command:
+    docker volume rm $(docker volume ls -q)
+
+    Restart the containers using the following command:
+    docker-compose up -d
+
+https://stackoverflow.com/questions/59391408/passing-multiple-yml-files-to-docker-compose
+
+There isn't a password for any of the users in the container -- there generally isn't in docker containers.
+    docker exec -u root -ti my_airflow_container bash to get a root shell inside a running container, or
+    docker run --rm -ti -u root --entrypoint bash puckel/airflow to start a new container as root.
+
+https://unix.stackexchange.com/questions/69314/automated-ssh-keygen-without-passphrase-how
+https://serverfault.com/questions/241588/how-to-automate-ssh-login-with-password
+
+$ ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
+$ ssh-copy-id -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null airflow@spark-master
+
+git config --global core.eol lf
+git config --global core.autocrlf false
+
+
+
+# - "spark.executor.instances=5"
+# - "spark.executor.memory=48g"
+# - "spark.executor.cores=15"
+# - "spark.default.parallelism=150"
+# - "spark.driver.memory=48g"
+# - "spark.driver.cores=15"
+# - "spark.yarn.executor.memoryOverhead=8192"
+# - "spark.yarn.driver.memoryOverhead=8192"
+# - "spark.dynamicAllocation.enabled=false"
+# - "spark.executor.extraJavaOptions=-Xss512m"
+# - "spark.driver.extraJavaOptions=-Xss512m"

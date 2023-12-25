@@ -1,0 +1,89 @@
+# builder step used to download and configure spark environment
+ARG SPARK_VERSION=3.0.2
+ARG HADOOP_VERSION=3.2
+
+FROM openjdk:11.0.11-jre-slim-buster as builder
+
+#RUN echo 'root:root' | chpasswd
+
+RUN  apt-get update                \
+  && apt-get install -y            \
+        curl                       \
+        vim                        \
+        wget                       \
+        dos2unix                   \
+        software-properties-common \
+        net-tools                  \
+        netcat                     \
+        ssh                        \
+        iputils-ping               \
+        ca-certificates            \
+        python3                    \
+        python3-pip
+
+RUN   update-alternatives --install "/usr/bin/python" "python" "$(which python3)" 1 && \
+      pip3 install pyspark
+
+# for reducing image size comment out
+#RUN  && apt-get autoremove -yqq --purge \
+#     && apt-get clean                   \
+#     && rm -rf /var/lib/apt/lists/*
+
+# Download and uncompress spark from the apache archive
+ARG SPARK_VERSION
+ARG HADOOP_VERSION
+
+RUN    wget --no-verbose -O  \
+       apache-spark.tgz "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" \
+    && mkdir -p /opt/spark \
+    && tar -xf apache-spark.tgz -C /opt/spark --strip-components=1 \
+    && rm apache-spark.tgz
+
+
+# Apache spark environment
+FROM builder as apache-spark
+
+ARG SCRIPTS_SERVICE_SSH=/opt/bash/service/.ssh
+ARG shh_user=airflow
+ARG ssh_file=id_rsa
+
+ENV ssh_dir=/home/$shh_user/.ssh
+
+RUN mkdir -p $SCRIPTS_SERVICE_SSH
+
+COPY bash/.bashrc  /root/.bashrc
+COPY bash/.bashrc  /home/$shh_user/.bashrc
+
+COPY bash/start-spark.sh /opt/bash/start-spark.sh
+COPY bash/entry_point_spark.sh /opt/bash/entry_point_spark.sh
+COPY bash/service/install_python_packages.sh /opt/bash/service/install_python_packages.sh
+COPY bash/service/requirements.txt /opt/bash/service/requirements.txt
+COPY bash/log4j.properties /opt/spark/conf/log4j.properties
+
+# enable SSH between containers
+RUN mkdir -p /var/run/sshd $ssh_dir && \
+    chmod 0755 /var/run/sshd && \
+    useradd -m $shh_user -s /bin/bash && \
+    echo $shh_user:$shh_user | chpasswd && \
+    usermod -aG sudo $shh_user && \
+    ssh-keygen -t rsa -N "" -f $ssh_dir/$ssh_file && \
+    cat  $ssh_dir/$ssh_file.pub >>  $ssh_dir/authorized_keys
+
+RUN chown -R $shh_user $ssh_dir && \
+    chmod 600 $ssh_dir/$ssh_file && \
+    chmod 700 $ssh_dir
+
+COPY  bash/.bashrc /home/$shh_user
+
+RUN (find /opt/spark-* -type f -print0 && find /opt/bash -type f -print0 ) | xargs -0 dos2unix && \
+    dos2unix /root/.bashrc
+
+RUN ["/bin/bash", "/opt/bash/service/install_python_packages.sh" ]
+
+EXPOSE 8080 7077 6066 22
+
+ENTRYPOINT ["/opt/bash/entry_point_spark.sh"]
+
+
+
+

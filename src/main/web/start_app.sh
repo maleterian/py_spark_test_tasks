@@ -2,7 +2,7 @@
 
 if [ "$SPARK_WORKLOAD" == "master" ]; then
 
-  l_log=$SPARK_LOG/web_app.log
+  l_log=$SPARK_APPS_LOG/web_app.log
 
   if $WEB_APP/stop_app.sh 2>&1 | tee $l_log ; then
     echo "Starting app" | tee -a $l_log

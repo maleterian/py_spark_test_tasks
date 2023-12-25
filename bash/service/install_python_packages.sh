@@ -1,6 +1,7 @@
 #!/bin/bash
 
-python3 -m pip install -r $SERVICE_BASH/requirements.txt
+source ~/.bashrc
 
+python3 -m pip install -r $SCRIPTS_SERVICE/requirements.txt
 
 

@@ -2,6 +2,8 @@
 Flask App to execute test tasks
 """
 import os
+import secrets
+import string
 
 from multiprocessing import Process
 from subprocess import Popen, PIPE, STDOUT
@@ -17,8 +19,7 @@ _server: Process
 
 # Flask constructor
 app = Flask(__name__, static_folder="static/", template_folder="templates/")
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
-
+app.secret_key = ''.join(secrets.choice(string.printable) for _ in range(20))
 LIST_ALL_TASKS_STR = [f"{task.group_id},{task.task_id}" for task in LIST_ALL_TASKS]
 
 

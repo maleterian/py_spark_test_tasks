@@ -17,12 +17,16 @@ Task = namedtuple("Task", "group_id task_id")
 _APP_NAME = "py_spark_task_validator"
 
 STR_TRUE: str = "true"
-FOLDER_DATA: str = os.environ.get("SPARK_DATA", "/opt/spark-data")
+SPARK_MASTER: str = os.getenv("SPARK_MASTER", "spark://spark-master:7077")
+
+FOLDER_DATA: str = os.environ.get("SPARK_DATA", "file://opt/spark-data")
+FOLDER_TABLES: str = f"{FOLDER_DATA}/input/tables"
+
 FOLDER_APPS: str = os.environ.get("SPARK_APPS", "/opt/spark-apps/main")
 FOLDER_APPS_RESOURCES: str = FOLDER_APPS + "/resources"
-FOLDER_TEST: str = os.environ.get("SPARK_TEST", "/opt/spark-apps/test")
-FOLDER_LOG: str = os.environ.get("SPARK_LOG", "/opt/spark-log")
-FOLDER_TABLES: str = f"{FOLDER_DATA}/tables"
+FOLDER_TEST: str = os.environ.get("SPARK_APPS_TEST", "/opt/spark-apps/test")
+FOLDER_LOG: str = os.environ.get("SPARK_APPS_LOG", "/opt/spark-apps/log")
+
 SPARK_SESSION: SparkSession = None
 ROUND_DIGITS: int = 2
 
@@ -190,7 +194,7 @@ def fn_create_df_from_parquet(in_file_name: str = "*",
         l_file_name = in_file_name
 
     l_df = SPARK_SESSION.read \
-        .parquet(f"file://{in_folder_path}/{l_file_name}.{FILE_TYPE_PARQUET}") \
+        .parquet(f"{in_folder_path}/{l_file_name}.{FILE_TYPE_PARQUET}") \
         .repartition(in_repartition)
 
     if in_cache_df:
@@ -212,11 +216,13 @@ def fn_create_df_from_csv_file(in_file_name: str = "*",
     Function for registering file in SQL engine as temp view
     """
 
+    file_path = f"{in_folder_path}/{in_file_name}.{FILE_TYPE_CSV}"
+
     l_df = SPARK_SESSION.read \
         .option("header", STR_TRUE) \
         .option("inferSchema", STR_TRUE) \
         .option("sep", in_separator) \
-        .csv(f"file://{in_folder_path}/{in_file_name}.{FILE_TYPE_CSV}") \
+        .csv(file_path) \
         .repartition(in_repartition)
 
     l_view_name = fn_get_default_view_name(in_file_name, in_view_name)
@@ -249,7 +255,7 @@ def fn_get_task_target_folder(in_task_type: str,
     """
     Gives path to target folder (for task or group)
     """
-    l_task_group_folder = f"{FOLDER_DATA}/{in_task_type}"
+    l_task_group_folder = f"{FOLDER_DATA}/output/{in_task_type}"
 
     if in_task_group_id:
         l_task_group_folder += f"/task{in_task_group_id}"
@@ -400,7 +406,9 @@ def fn_get_or_create_spark_session():
     Function to init spark session
     """
     global SPARK_SESSION
-    SPARK_SESSION = SparkSession.builder.appName(_APP_NAME).getOrCreate()
+    SPARK_SESSION = SparkSession.builder  \
+        .master(SPARK_MASTER) \
+        .appName(_APP_NAME).getOrCreate()
 
     fn_init_tables()
 

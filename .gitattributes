@@ -1,6 +1,7 @@
-*.py eol=lf
 *.sh eol=lf
 *.sql eol=lf
 *.txt eol=lf
 *.yml eol=lf
 *.yaml eol=lf
+*.bashrc eol=lf
+*.properties eol=lf
