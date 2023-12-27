@@ -7,25 +7,25 @@
 * 6 cores, 16 GB RAM for Spark cluster 
 * 6 cores, 32 GB RAM for Spark cluster + Airflow 
 
+## Project files description
 
-## Project data
 Data transformation tasks (1-4) and schema description:
 * data_transformation_task_description.txt
 
 Inputs:
-* data/tables/accounts/*.parquet
-* data/tables/country_abbreviation/*.parquet
-* data/tables/transactions/*.parquet
+* data/input/tables/accounts/*.parquet
+* data/input/tables/country_abbreviation/*.parquet
+* data/input/tables/transactions/*.parquet
 
 Outputs:
-* data/df/task.../...
-* data/sql/task.../...
+* data/output/df/task.../...
+* data/output/sql/task.../...
 
 Expected outputs:
 * src/test/task1/expected_output/..
 * src/test/task../expected_output/..
 
-## Project realisation files
+Code:
 * src/main/pyspark_task.py - dataframes and sql definition
 * src/main/pyspark_task_validator.py - module to invoke and test dataframes and sql definition
 * src/main/resources/sql/.. - sql files with the same logic as for dataframes
@@ -159,7 +159,7 @@ It has explanation of all steps but uses previous structure of the project, so y
 
 
 ## How to work with project:
-1. Initialization :
+1. How to initialize the project :
     1. Permissions set 
        > chmod -R 755 ./*
     2. Docker image build
@@ -172,7 +172,7 @@ It has explanation of all steps but uses previous structure of the project, so y
            docker build -f ./docker/DockerfileAirflow  -t airflow-with-spark:1.0.0 ./
            ```     
 
-2. Run only spark cluster without airflow
+2. How to run only spark cluster without airflow
     1. Using prepared bash script
        > ./docker/start-docker.sh spark n
     2. Using docker commands
@@ -180,7 +180,7 @@ It has explanation of all steps but uses previous structure of the project, so y
        docker compose -f ./docker/docker-compose-spark.yaml up -d
        docker container exec -it py_spark_test_tasks-spark-master-1 /bin/bash
        ```
-3. Run Spark and Airflow
+3. How to run Spark and Airflow (already connected via ssh)
     1. Using prepared bash script
        > ./docker/start-docker.sh all n
     2. Using docker commands
@@ -188,25 +188,27 @@ It has explanation of all steps but uses previous structure of the project, so y
        docker compose -f ./docker/docker-compose-spark.yaml -f ./docker/docker-compose-airflow.yaml up -d 
        ```
 
-4. Main script **/opt/spark-apps/main/pyspark_task.py** and its parameters:
+4. How to use main script **pyspark_task.py**:
+    ``` spark-submit /opt/spark-apps/main/pyspark_task.py -g <GROUP_ID> -t <TASK_ID> -tt <TASK_TYPE> ```
     1. GROUP_ID has values from list [1,2,3,4]
     2. TASK_ID has values 1 from 5, depends on task, not every group task has 5 tasks
     3. TASK_TYPE has values from list [df,sql]
     
     ```
-    #spark-submit /opt/spark-apps/main/pyspark_task.py -g <GROUP_ID> -t <TASK_ID> -tt <TASK_TYPE>
+    #Examples
     spark-submit /opt/spark-apps/main/pyspark_task.py -g 1 -t 1 -tt df
     spark-submit /opt/spark-apps/main/pyspark_task.py -g 1 -t 1 -tt sql   
     spark-submit /opt/spark-apps/main/pyspark_task.py -g 2 -t 1 -tt df
     spark-submit /opt/spark-apps/main/pyspark_task.py -g 3 -t 1 -tt sql
     ``` 
 
-5. How to run all tests using bash script:
+6. How to run all tests using bash script:
 > ./bash/start-docker.sh spark n y
 6. How to run all tests manually:
->   ./bash/start-docker.sh spark n
->
->   pytest /opt/spark-apps/test
+```
+  ./bash/start-docker.sh spark n  
+  pytest /opt/spark-apps/test
+```
 6. How to run all failed tests:
 > ./bash/start-docker.sh spark n f
 5. Flask App to execute tasks from UI:
