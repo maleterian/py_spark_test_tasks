@@ -76,6 +76,12 @@ User and PWD for AirFlow UI http://localhost:8080/ is airflow/airflow.
       ``` 
       docker compose -f ./docker/docker-compose-spark.yaml -f ./docker/docker-compose-airflow-no-connection-with-spark.yaml up -d
       ```
+      if airflow doesn't start you need to clean up your docker images and volumes :
+      ```
+      docker rm -f $(docker ps -a -q)
+      docker volume rm $(docker volume ls -q)
+      docker system prune  
+      ```      
    2. Install and configure SSH and Spark submit providers
    3. Create simple DAG by connecting to the spark master host and running task 1.1 
    4. Create 4 group dags (one per each task)
