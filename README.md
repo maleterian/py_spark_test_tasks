@@ -1,12 +1,12 @@
 # Training project for PySpark
 
 ## Requirements:
-* Docker ( on Linux or on Windows with WSL support to run bash scripts )
-   * 6 cores, 12 GB RAM
-      - SPARK_WORKER_CORES : 2 * 3
-      - SPARK_WORKER_MEMORY : 2G * 3
-      - SPARK_DRIVER_MEMORY : 1G * 3
-      - SPARK_EXECUTOR_MEMORY : 1G * 3
+* Docker 
+  * on Linux 
+  * on Windows with Ubuntu on WSL. Instruction is [here](https://ubuntu.com/tutorials/install-ubuntu-on-wsl2-on-windows-11-with-gui-support#1-overview) 
+* 6 cores, 16 GB RAM for Spark cluster 
+* 6 cores, 32 GB RAM for Spark cluster + Airflow 
+
 
 ## Project data
 Data transformation tasks (1-4) and schema description:
@@ -38,9 +38,9 @@ Expected outputs:
   * Third parameter can have values **y,n**, used to start test or not. 
 * bash/... other files are related to the spark env config
 
-## Project tasks
+## Project tasks (read section "How to work with project" before starting any task)
 ### 1. Pyspark Task : Spark API + Spark SQL + pytest (easy difficulty)
-Summary : Use spark sql and dataframes API for data processing. Implement all tasks described in data_transformation_task_description.txt 
+Summary : Use spark sql and dataframes API for data processing. Implement all tasks described in **data_transformation_task_description.txt** 
    1. Write sql code in all src/main/resources/sql/task*/
    2. Write pyspark code for all dataframes in pyspark_task.py 
    3. Check how we can invoke subsets of tests for
@@ -63,33 +63,84 @@ Summary : Use spark sql and dataframes API for data processing. Implement all ta
       ```
       pytest /opt/spark-apps/test/test_app.py --task_type sql --task_group_id 2 --task_id 1 --skip-xfail       
       pytest /opt/spark-apps/test/test_app.py --task_type df  --task_group_id 2 --task_id 1 --skip-xfail
-      ```
-   
+      ``` 
 
-### 2. Python core task (hard)
-Summary : Implement modules specified below by yourself
-   1. Create own data comparison framework (write your own pyspark_task_validator.py)
-   2. Test created all transformations for SQL and Dataframe api using pytest-spark (write your own test_app.py)
-   3. Add logging to all your functions using decorators(write your own project_logs.py)
-
-
-### 3. Airflow integration task (easy) 
+### 2. Airflow integration task (easy) 
 Summary: Run all tasks using airflow Group DAG.
 ```
 You need to run Main script /opt/spark-apps/main/pyspark_task.py using Airflow.
-Script parameters described in "How to work with project".
 User and PWD for AirFlow UI http://localhost:8080/ is airflow/airflow.
 ```
-
+   0. you need to implement Task 1 (Spark API + Spark SQL + pytest)
    1. Start spark cluster and airflow  
-   > ./docker/start-docker.sh all y y
+      ``` 
+      docker compose -f ./docker/docker-compose-spark.yaml -f ./docker/docker-compose-airflow-no-connection-with-spark.yaml up -d
+      ```
    2. Install and configure SSH and Spark submit providers
    3. Create simple DAG by connecting to the spark master host and running task 1.1 
    4. Create 4 group dags (one per each task)
       1. Group Dags need to be executed one by one
       2. Tasks inside group need to be executed in parallel
-      3. Add your code here airflow/dags/docker_spark_dag_with_task_groups.py
+      3. Add your code to airflow/dags/docker_spark_dag_with_task_groups.py or create your own DAG
       4. Check and understand the config, write your own DAG 
+   5. If you had issues with the config use next command and check the solution.  
+      1. command to create spark cluster + airflow + ssh connection between them
+      > ./docker/start-docker.sh all y 
+      2. command to connect to any container          
+      > docker container exec -it [container_name] /bin/bash
+      3. command to get list of container names 
+      ```docker compose -f ./docker-compose-spark.yaml -f ./docker-compose-airflow-no-connection-with-spark.yaml ps```
+   6. List of bash commands that you need to add to the dag
+      ```
+      # df
+      ## group 1
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 1 -t 1 -tt df
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 1 -t 2 -tt df
+      ## group 2    
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 2 -t 1 -tt df
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 2 -t 2 -tt df
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 2 -t 3 -tt df
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 2 -t 4 -tt df
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 2 -t 5 -tt df
+      ## group 3
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 3 -t 1 -tt df      
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 3 -t 2 -tt df
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 3 -t 3 -tt df
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 3 -t 4 -tt df
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 3 -t 5 -tt df
+      ## group 4
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 4 -t 1 -tt df
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 4 -t 2 -tt df
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 4 -t 3 -tt df
+      
+      # sql
+      ## group 1
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 1 -t 1 -tt sql
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 1 -t 2 -tt sql
+      ## group 2    
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 2 -t 1 -tt sql
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 2 -t 2 -tt sql
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 2 -t 3 -tt sql
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 2 -t 4 -tt sql
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 2 -t 5 -tt sql
+      ## group 3
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 3 -t 1 -tt sql      
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 3 -t 2 -tt sql
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 3 -t 3 -tt sql
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 3 -t 4 -tt sql
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 3 -t 5 -tt sql
+      ## group 4
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 4 -t 1 -tt sql
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 4 -t 2 -tt sql
+      spark-submit /opt/spark-apps/main/pyspark_task.py -g 4 -t 3 -tt sql      
+      ```
+      
+### 3. Python core task (hard)
+Summary : Implement modules specified below by yourself
+1. Create own data comparison framework (write your own pyspark_task_validator.py)
+2. Test created all transformations for SQL and Dataframe api using pytest-spark (write your own test_app.py)
+3. Add logging to all your functions using decorators(write your own project_logs.py)
+ 
 
 ### 4. Python core + flask (hard)
 Summary: Create UI using flask for execution of implemented tasks. 
