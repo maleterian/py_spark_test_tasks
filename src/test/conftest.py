@@ -14,16 +14,6 @@ def pytest_addoption(parser):
     parser.addoption("--task_id", dest="task_id",
                      action="append", default=[], type=int)
 
-    parser.addoption("--skip-xfail", action="store_true",
-                     help="Skip all tests marked as xfail")
-
-
-def pytest_collection_modifyitems(config, items):
-    if config.getoption("--skip-xfail"):
-        skip_marker = pytest.mark.skip(reason="Skipped due to --skip-xfail flag")
-        for item in items:
-            if "xfail" in item.keywords:
-                item.add_marker(skip_marker)
 
 def pytest_generate_tests(metafunc):
     """Populate 'task_type', 'task_group_id', 'task_id' fixtures if they are mentioned in pytest"""
