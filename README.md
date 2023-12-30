@@ -39,7 +39,7 @@ Code:
 * bash/... other files are related to the spark env config
 
 ## Project tasks (read section "How to work with project" before starting any task)
-### 1. Pyspark Task : Spark API + Spark SQL + pytest (easy difficulty)
+### 1. Pyspark Task : Spark API + Spark SQL + pytest (medium)
 **Summary:** Use spark sql and dataframes API for data processing. Implement all tasks described in **data_transformation_task_description.txt**.
 
    1. Write sql code in all src/main/resources/sql/task*/
@@ -49,8 +49,7 @@ Code:
       2. SQLs
       3. Task group
       4. Particular Task
-   4. Understand implementation of config and tests for pytest ( conftest.py, test_app.py )
-   5. Make sure that all test passed 
+   4. Make sure that all test passed 
       1. Option1: Run all tests using prepared bash script  
       ```
       ./docker/start-docker.sh spark y y
@@ -64,7 +63,25 @@ Code:
       ```
       pytest /opt/spark-apps/test/test_app.py --task_type sql --task_group_id 2 --task_id 1 --skip-xfail       
       pytest /opt/spark-apps/test/test_app.py --task_type df  --task_group_id 2 --task_id 1 --skip-xfail
-      ``` 
+      ```
+   5. Understand implementation of config and tests for pytest ( conftest.py, test_app.py )
+       1. Fix bugs in current implementation as it doesn't work as expected.
+      
+          Command below need to run only specific tests + technical one (marked as Failed + test_fn_run_task_group_sql).        
+          So in the data/output you should find only data/output/sql/task2/2.1... and data/output/sql/task1 (executed by test_fn_run_task_group_sql).
+          > pytest /opt/spark-apps/test/test_app.py --task_type sql --task_group_id 2 --task_id 1
+       2. Add parameter to skip tests that marked with **marks=pytest.mark.xfail**.
+          > pytest /opt/spark-apps/test/test_app.py --task_type sql --task_group_id 2 --task_id 1 --skip-xfail
+       3. Mark all tests in **test_app.py** except **test_task_data** as **technical**
+       4. Add parameter **--skip-technical** to skip tests that marked **technical**.
+      
+          So in the data/output you should find only one folder data/output/sql/task2/2.1... if you implemented all correctly  
+          > pytest /opt/spark-apps/test/test_app.py --task_type sql --task_group_id 2 --task_id 1 --skip-technical
+       5. Add parameter **--deselect-technical** to deselect tests that marked **technical**.
+      
+          So in the data/output you should find only one folder data/output/sql/task2/2.1... if you implemented all correctly
+          > pytest /opt/spark-apps/test/test_app.py --task_type sql --task_group_id 2 --task_id 1 --deselect-technical
+
 
 ### 2. Airflow integration task (easy) 
 **Summary:** Run all tasks using airflow Group DAG.
