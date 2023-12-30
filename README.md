@@ -142,12 +142,13 @@ User and PWD for AirFlow UI http://localhost:8080/ is airflow/airflow.
       spark-submit /opt/spark-apps/main/pyspark_task.py -g 4 -t 3 -tt sql      
       ```
       
-### 3. Python core task (hard)
+### 3. Python core + PySpark task (hard)
 **Summary:** Implement modules specified below by yourself
 
 1. Create own data comparison framework (write your own pyspark_task_validator.py)
 2. Test created all transformations for SQL and Dataframe api using pytest-spark (write your own test_app.py)
-3. Add logging to all your functions using decorators(write your own project_logs.py)
+3. Add possibility to run tests only for particular criteria (group, task, and skip tests marked as failed)
+4. Add logging to all your functions using decorators(write your own project_logs.py)
  
 
 ### 4. Python core + flask (hard)
@@ -164,6 +165,8 @@ User and PWD for AirFlow UI http://localhost:8080/ is airflow/airflow.
 ### 5. Cloud task (hard)
 **Summary:** Implement task 1 and task 2 on any cloud.
 Idea is to run spark on EMR or DataProc using managed Airflow on AWS or GCP.
+You can do it in few phases : by using local Airflow on Docker and EMR/DataProc, then by using all Cloud services
+    
 
 Example for GCP you can find in ./cloud/gcp/PySpark_on_GCP_Tutorial.pdf.
 It has explanation of all steps but uses previous structure of the project, so you will need to amend it to make it work. 
