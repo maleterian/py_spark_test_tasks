@@ -6,7 +6,7 @@
   * on Windows with Ubuntu on WSL. Instruction is [here](https://ubuntu.com/tutorials/install-ubuntu-on-wsl2-on-windows-11-with-gui-support#1-overview) 
 * 6 cores, 16 GB RAM for Spark cluster 
  
-## Task: Python core + flask (hard)
+## Task 1: Python core + flask (hard)
 **Summary:** Create UI using flask for execution bash commands in pyspark.
 
 1. You need to write code in **src/main/web/app.py** and **src/main/web/templates/main.html**
@@ -64,6 +64,26 @@ spark-submit /opt/spark-apps/main/pyspark_task.py -g 4 -t 3 -tt sql
 7. Example of desired solution :
 ![Flask_UI.JPG](images/Flask_UI.JPG)   
 
+## Task 2: PyTest
+1. Understand implementation of config and tests for pytest ( conftest.py, test_app.py )
+    1. Fix bugs in current implementation as it doesn't work as expected.
+
+       Command below need to run only specific tests + technical one (marked as Failed + test_fn_run_task_group_sql).        
+       So in the data/output you should find only data/output/sql/task2/2.1... and data/output/sql/task1 (executed by test_fn_run_task_group_sql).
+       > pytest /opt/spark-apps/test/test_app.py --task_type sql --task_group_id 2 --task_id 1
+    2. Add parameter to skip tests that marked with **marks=pytest.mark.xfail**.
+       > pytest /opt/spark-apps/test/test_app.py --task_type sql --task_group_id 2 --task_id 1 --skip-xfail
+    3. Mark all tests in **test_app.py** except **test_task_data** as **technical**
+    4. Add parameter **--skip-technical** to skip tests that marked **technical**.
+
+       So in the data/output you should find only one folder data/output/sql/task2/2.1... if you implemented all correctly
+       > pytest /opt/spark-apps/test/test_app.py --task_type sql --task_group_id 2 --task_id 1 --skip-technical
+    5. Add parameter **--deselect-technical** to deselect tests that marked **technical**.
+
+       So in the data/output you should find only one folder data/output/sql/task2/2.1... if you implemented all correctly
+       > pytest /opt/spark-apps/test/test_app.py --task_type sql --task_group_id 2 --task_id 1 --deselect-technical
+
+
 ## How to work with project:
 1. How to initialize the project :
     1. Permissions set 
@@ -77,13 +97,13 @@ spark-submit /opt/spark-apps/main/pyspark_task.py -g 4 -t 3 -tt sql
            docker build -f ./docker/DockerfileSpark  --build-arg SPARK_VERSION=3.0.2 --build-arg HADOOP_VERSION=3.2 -t cluster-apache-spark:3.0.2 ./                  
            ```     
 
-2. How to run only spark cluster without airflow
+2. How to start spark cluster
     1. Using prepared bash script
        > ./docker/start-docker.sh spark n
     2. Using docker commands
        ```
        docker compose -f ./docker/docker-compose-spark.yaml up -d
-       docker container exec -it py_spark_test_tasks-spark-master-1 /bin/bash
+       docker container exec -it py_spark_test_tasks-spark-master-1 /bin/bash       
        spark-submit /opt/spark-apps/main/pyspark_task.py -g 1 -t 1 -tt df
        ```
 
@@ -98,9 +118,14 @@ spark-submit /opt/spark-apps/main/pyspark_task.py -g 4 -t 3 -tt sql
     spark-submit /opt/spark-apps/main/pyspark_task.py -g 1 -t 1 -tt df
     spark-submit /opt/spark-apps/main/pyspark_task.py -g 1 -t 1 -tt sql   
     spark-submit /opt/spark-apps/main/pyspark_task.py -g 2 -t 1 -tt df
-    spark-submit /opt/spark-apps/main/pyspark_task.py -g 3 -t 1 -tt sql
+    spark-submit /opt/spark-apps/main/pyspark_task.py -g 3 -t 1 -tt sql   
     ``` 
-4. Flask App to execute tasks from UI:
+4. How to run Pytest
+   1. Start spark cluster
+      > ./docker/start-docker.sh spark n
+   2. Run pytest    
+      > pytest /opt/spark-apps/test/test_app.py
+5. Flask App to execute tasks from UI:
 > http://localhost:8000/run_task
 6. Spark Master UI
 > http://localhost:9090/
