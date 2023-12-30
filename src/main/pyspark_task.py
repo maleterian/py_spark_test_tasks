@@ -26,10 +26,10 @@ _l_dict_test_sql = {
     Task(4, 3): "single_dataset",
     Task(5, 1): "account_types_count",
 }
-
+LAST_TEST_TASK_GROUP = 4
 DICT_TEST_TASKS_SQL = {k: f"{k.group_id}.{k.task_id}_{v}" for k, v in _l_dict_test_sql.items()}
-LIST_ALL_TASKS = [k for k, v in _l_dict_test_sql.items()]
-SET_ALL_TASK_GROUPS = set([g.group_id for g in LIST_ALL_TASKS if g.group_id <= 4])
+LIST_ALL_TASKS = [k for k, v in _l_dict_test_sql.items() if k.group_id <= LAST_TEST_TASK_GROUP]
+SET_ALL_TASK_GROUPS = set([g.group_id for g in LIST_ALL_TASKS if g.group_id <= LAST_TEST_TASK_GROUP])
 
 
 def fn_get_dict_with_all_tasks() -> Dict[int, List[TaskDef]]:
