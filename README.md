@@ -65,7 +65,7 @@ spark-submit /opt/spark-apps/main/pyspark_task.py -g 4 -t 3 -tt sql
 ![Flask_UI.JPG](images/Flask_UI.JPG)   
 
 ## Task 2: PyTest
-1. Understand implementation of config and tests for pytest ( conftest.py, test_app.py )
+1. Understand implementation of config and tests for pytest ( conftest.py, test_app.py, pytest.ini )
     1. Fix bugs in current implementation as it doesn't work as expected.
 
        Command below need to run only specific tests + technical one (marked as Failed + test_fn_run_task_group_sql).        
