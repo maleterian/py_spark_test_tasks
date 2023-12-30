@@ -61,6 +61,8 @@ spark-submit /opt/spark-apps/main/pyspark_task.py -g 4 -t 1 -tt sql
 spark-submit /opt/spark-apps/main/pyspark_task.py -g 4 -t 2 -tt sql
 spark-submit /opt/spark-apps/main/pyspark_task.py -g 4 -t 3 -tt sql   
 ```
+7. Example of desired solution :
+![Flask_UI.JPG](images/Flask_UI.JPG)   
 
 ## How to work with project:
 1. How to initialize the project :
