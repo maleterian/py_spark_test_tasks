@@ -102,7 +102,7 @@ spark-submit /opt/spark-apps/main/pyspark_task.py -g 4 -t 3 -tt sql
        > ./docker/start-docker.sh spark n
     2. Using docker commands
        ```
-       docker compose -f ./docker/docker-compose-spark.yaml up -d
+       docker compose -f ./docker-compose-spark.yaml up -d
        docker container exec -it py_spark_test_tasks-spark-master-1 /bin/bash       
        spark-submit /opt/spark-apps/main/pyspark_task.py -g 1 -t 1 -tt df
        ```
