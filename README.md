@@ -92,7 +92,7 @@ User and PWD for AirFlow UI http://localhost:8080/ is airflow/airflow.
    0. you need to implement Task 1 (Spark API + Spark SQL + pytest)
    1. Start spark cluster and airflow  
       ``` 
-      docker compose -f ./docker/docker-compose-spark.yaml -f ./docker/docker-compose-airflow-no-connection-with-spark.yaml up -d
+      docker compose -f ./docker-compose-spark.yaml -f ./docker-compose-airflow-no-connection-with-spark.yaml up -d
       ```
       if airflow doesn't start you need to clean up your docker images and volumes :
       ```
@@ -255,7 +255,7 @@ It has explanation of all steps but uses previous structure of the project, so y
        > ./docker/start-docker.sh spark n
     2. Using docker commands
        ```
-       docker compose -f ./docker/docker-compose-spark.yaml up -d
+       docker compose -f ./docker-compose-spark.yaml up -d
        docker container exec -it py_spark_test_tasks-spark-master-1 /bin/bash
        ```
 3. How to run Spark and Airflow (already connected via ssh)
@@ -263,7 +263,7 @@ It has explanation of all steps but uses previous structure of the project, so y
        > ./docker/start-docker.sh all n
     2. Using docker commands
        ``` 
-       docker compose -f ./docker/docker-compose-spark.yaml -f ./docker/docker-compose-airflow.yaml up -d 
+       docker compose -f ./docker-compose-spark.yaml -f ./docker-compose-airflow.yaml up -d 
        ```
 
 4. How to use main script **pyspark_task.py**:
